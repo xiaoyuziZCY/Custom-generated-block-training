@@ -1,6 +1,7 @@
 package chain
 
 import (
+	"Xianfeng/consensus"
 	"Xianfeng/utils"
 	"bytes"
 	"crypto/sha256"
@@ -38,7 +39,11 @@ func CreateBlock(height int64,preHash [32]byte,data []byte)Block  {
 	block.Version = VERSION
 	block.Timestamp = time.Now().Unix()
 	block.Data = data
+	//共识机制切换
 	block.SetHash()
+	cons := consensus.NewPow()
+	cons.Run()
+
 	return block
 }
 //创世区块函数
