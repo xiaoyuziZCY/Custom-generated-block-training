@@ -1,12 +1,18 @@
 package chain
 
-import "time"
+import (
+	"Xianfeng/utils"
+	"bytes"
+	"crypto/sha256"
+	"time"
+)
 
 const VERSION  = 2
 type Block struct {
 	Height int64
 	Version int64
 	preHash [32]byte
+	Hash [32]byte//区块hash
 	//默克尔根
 	Timestamp int64
 	//Difficulty int64
@@ -14,17 +20,28 @@ type Block struct {
 	Data []byte//区块体
 
 }
-
-func CreateBlock(height int64,preHash [32]byte,Timestamp int64,Nonce int64)Block  {
+//只有区块才能调用该方法
+func (block *Block)SetHash(){
+	heightByte,_ := utils.Int2Byte(block.Height)
+	versionByte,_:=utils.Int2Byte(block.Version)
+	timestampByte,_ :=utils.Int2Byte(block.Timestamp)
+	nonceByte,_:=utils.Int2Byte(block.Nonce)
+   bk:= bytes.Join([][]byte{heightByte,versionByte,block.preHash[:],timestampByte,nonceByte,block.Data},[]byte{})
+   blockhash:= sha256.Sum256(bk)
+   block.Hash =blockhash
+}
+//新区块函数
+func CreateBlock(height int64,preHash [32]byte,data []byte)Block  {
 	block :=Block{}
 	block.Height = height + 1
 	block.preHash = preHash
 	block.Version = VERSION
-	block.Timestamp = Timestamp
-	block.Nonce = Nonce
-	block.Data = nil
+	block.Timestamp = time.Now().Unix()
+	block.Data = data
+	block.SetHash()
 	return block
 }
+//创世区块函数
 func CreatGenesisBlock(data []byte)Block{
 	genesis :=Block{}
 	genesis.Height = 0
@@ -33,5 +50,6 @@ func CreatGenesisBlock(data []byte)Block{
 	genesis.Timestamp = time.Now().Unix()
 	genesis.Nonce = 0
 	genesis.Data = data
+	genesis.SetHash()
 	return genesis
 }
