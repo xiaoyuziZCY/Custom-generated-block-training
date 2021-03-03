@@ -1,18 +1,26 @@
 package consensus
 
 import (
-	"Xianfeng/consensus/pos"
-	"Xianfeng/consensus/pow"
+	"math/big"
 )
 
 type Consensus interface {
-	Run() interface{}
+	Run() ([32]byte,int64)
 }
-func NewPow() Consensus{
-	proof:=pow.POW{}
-	return proof
+//区块的数据标准
+type Blockinterface interface {
+	Getheight()int64
+	Getversion()int64
+	Gettimestamp()int64
+	Getprehash()[32]byte
+	Getdata()[]byte
+}
+func NewPow(block Blockinterface) Consensus{
+	init := big.NewInt(1)
+	init.Lsh(init,255-DIFFICULTY)
+	return POW{block,init}
 }
 func NewPos() Consensus{
-	proof:=pos.POS{}
+	proof:= POS{}
 	return proof
 }
