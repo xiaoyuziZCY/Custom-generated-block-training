@@ -15,4 +15,16 @@ func main() {
 	fmt.Println(blockchain.Blocks[0])
 	fmt.Println(blockchain.Blocks[1])
 	fmt.Println(blockchain.Blocks[2])
+	block0 :=blockchain.Blocks[0]
+	block0Serbytes,err :=block0.Serialize()
+	if err !=nil {
+		fmt.Println("序列化出现错误",err)
+		return
+	}
+	deblock0,err :=chain.Deserialize(block0Serbytes)
+	if err !=nil {
+		fmt.Println("反序列化出现错误",err)
+		return
+	}
+	fmt.Println(string(deblock0.Data))
 }

@@ -40,9 +40,7 @@ func (block *Block)Serialize()([]byte,error){
 //区块反序列化，传入[]byte，返回block
 func Deserialize(data []byte)(Block,error){
 	var block Block
-	reader :=new(bytes.Reader)
-	reader.Read(data)
-	decoder := gob.NewDecoder(reader)
+	decoder := gob.NewDecoder(bytes.NewReader(data))
 	err :=decoder.Decode(&block)
 	return block,err
 }
