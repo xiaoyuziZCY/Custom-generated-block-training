@@ -2,6 +2,8 @@ package chain
 
 import (
 	"Xianfeng/consensus"
+	"bytes"
+	"encoding/gob"
 	"time"
 )
 
@@ -28,6 +30,22 @@ type Block struct {
 //   blockhash:= sha256.Sum256(bk)
 //   block.Hash =blockhash
 //}
+//区块的序列化为[]byte类型
+func (block *Block)Serialize()([]byte,error){
+	buffer :=new(bytes.Buffer)
+	encoder := gob.NewEncoder(buffer)
+	err := encoder.Encode(&block)
+	return buffer.Bytes(),err
+}
+//区块反序列化，传入[]byte，返回block
+func Deserialize(data []byte)(Block,error){
+	var block Block
+	reader :=new(bytes.Reader)
+	reader.Read(data)
+	decoder := gob.NewDecoder(reader)
+	err :=decoder.Decode(&block)
+	return block,err
+}
 //新区块函数
 func CreateBlock(height int64,preHash [32]byte,data []byte)Block  {
 	block :=Block{}
