@@ -18,11 +18,13 @@ func (pow POW) Run() ( [32]byte,int64){
 	fmt.Println("已为pow算法机制")
 	var nonce int64
 	nonce = 0
-
+	hashbig:=new(big.Int)
 	for {
 		hash := Parepreblock(pow.block,nonce)
 		target :=pow.target
-		result := bytes.Compare(hash[:],target.Bytes())
+		hashbig= hashbig.SetBytes(hash[:])
+		result :=hashbig.Cmp(target)
+		//result := bytes.Compare(hash[:],target.Bytes())
 		if result ==-1 {
 			return hash,nonce
 		}
