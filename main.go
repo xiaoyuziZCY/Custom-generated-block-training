@@ -3,28 +3,29 @@ package main
 import (
 	"Xianfeng/chain"
 	"fmt"
+	"github.com/boltdb/bolt"
 )
 
+const DBFILE  ="xianfeng03.db"
 func main() {
 	fmt.Println("正常")
-	blockchain:=chain.Creatchainwithgenesis([]byte("hello"))
-	//genesis:= chain.CreatGenesisBlock([]byte(string("小鱼子")))
-	blockchain.Addnewblock([]byte("block1"))
-	blockchain.Addnewblock([]byte("block2"))
-	fmt.Println("当前区块个数",len(blockchain.Blocks))
-	fmt.Println(blockchain.Blocks[0])
-	fmt.Println(blockchain.Blocks[1])
-	fmt.Println(blockchain.Blocks[2])
-	block0 :=blockchain.Blocks[0]
-	block0Serbytes,err :=block0.Serialize()
-	if err !=nil {
-		fmt.Println("序列化出现错误",err)
+	engine, err := bolt.Open(DBFILE, 0600, nil)
+	if err != nil {
+		panic(err.Error())
+	}
+	blockChain := chain.Newblockchain(engine)
+	blockChain.Creatgenesis([]byte("HELLO WORLD"))
+	err = blockChain.Addnewblock([]byte("hello"))
+	if err != nil {
+		fmt.Println(err.Error())
 		return
 	}
-	deblock0,err :=chain.Deserialize(block0Serbytes)
+	allBlock, err := blockChain.GetAllblocks()
 	if err !=nil {
-		fmt.Println("反序列化出现错误",err)
+		fmt.Println(err.Error())
 		return
 	}
-	fmt.Println(string(deblock0.Data))
+	for _,block:=range allBlock{
+fmt.Println(block)
+	}
 }

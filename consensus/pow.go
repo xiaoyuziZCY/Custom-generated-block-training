@@ -8,13 +8,13 @@ import (
 	"math/big"
 )
 
-const DIFFICULTY  =10
+const DIFFICULTY  =16
 type POW struct {
 		block  Blockinterface
 		target *big.Int
 }
 
-func (pow POW) Run() ( [32]byte,int64){
+func (pow POW) SearchNonce()([32]byte,int64){
 	fmt.Println("已为pow算法机制")
 	var nonce int64
 	nonce = 0

@@ -55,7 +55,7 @@ func CreateBlock(height int64,preHash [32]byte,data []byte)Block  {
 	//共识机制切换
 	//block.SetHash()
 	cons := consensus.NewPow(block)
-	hash,nonce :=cons.Run()
+	hash,nonce :=cons.SearchNonce()
 	block.Hash =hash
 	block.Nonce = nonce
 
@@ -72,7 +72,7 @@ func CreatGenesisBlock(data []byte)Block{
 	genesis.Nonce = 0
 	genesis.Data = data
 	proof :=consensus.NewPow(genesis)
-	hash,nonce :=proof.Run()
+	hash,nonce :=proof.SearchNonce()
 	genesis.Hash = hash
 	genesis.Nonce=nonce
 	return genesis

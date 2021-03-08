@@ -5,7 +5,7 @@ import (
 )
 
 type Consensus interface {
-	Run() ([32]byte,int64)
+	SearchNonce() ([32]byte,int64)
 }
 //区块的数据标准
 type Blockinterface interface {
