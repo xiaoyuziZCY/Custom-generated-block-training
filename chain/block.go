@@ -4,6 +4,7 @@ import (
 	"Xianfeng/consensus"
 	"bytes"
 	"encoding/gob"
+	"fmt"
 	"time"
 )
 
@@ -41,7 +42,9 @@ func (block *Block)Serialize()([]byte,error){
 func Deserialize(data []byte)(Block,error){
 	var block Block
 	decoder := gob.NewDecoder(bytes.NewReader(data))
+	fmt.Println("a")
 	err :=decoder.Decode(&block)
+	fmt.Println("b")
 	return block,err
 }
 //新区块函数

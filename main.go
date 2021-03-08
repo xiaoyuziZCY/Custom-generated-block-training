@@ -11,20 +11,19 @@ func main() {
 	fmt.Println("正常")
 	engine, err := bolt.Open(DBFILE, 0600, nil)
 	if err != nil {
+		fmt.Println(0)
 		panic(err.Error())
 	}
 	blockChain := chain.Newblockchain(engine)
 	blockChain.Creatgenesis([]byte("HELLO WORLD"))
-	err = blockChain.Addnewblock([]byte("hello"))
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+	lastblock := blockChain.GetLastBlock()
+	fmt.Println(lastblock)
 	allBlock, err := blockChain.GetAllblocks()
 	if err !=nil {
-		fmt.Println(err.Error())
+		fmt.Println("pwo...",err.Error())
 		return
 	}
+	fmt.Println(3)
 	for _,block:=range allBlock{
 fmt.Println(block)
 	}

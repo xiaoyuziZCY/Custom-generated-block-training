@@ -1,7 +1,9 @@
 package chain
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 	"github.com/boltdb/bolt"
 )
 
@@ -77,34 +79,47 @@ func (chain Blockchain)GetLastBlock()(Block){
 func(chain Blockchain)GetAllblocks()([]Block,error){
 	engine:=chain.Engine
 	var errs error
+	genesishash := [32]byte{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 	blocks:=make([]Block,0)
-	engine.View(func(tx *bolt.Tx) error {
+	fmt.Println("一")
+	errs = engine.View(func(tx *bolt.Tx) error {
 		bucket:=tx.Bucket([]byte(BLOCKS))
 		if bucket==nil {
+			fmt.Println("二")
 			errs =errors.New("块数据库操作失败")
 			return errs
 		}
-		//将最后的区块存储到切片里
-		blocks=append(blocks,chain.LastBlock)
+		fmt.Println("三")
+		////将最后的区块存储到切片里
+		//blocks=append(blocks,chain.LastBlock)
 		var currentHash []byte
 		//直接从倒数第二个区块进行遍历
-		currentHash=chain.LastBlock.PreHash[:]
+		currentHash=chain.LastBlock.Hash[:]
+		fmt.Println("四")
+		i := 0
 		for {
 			//根据区块hash拿[]byte类型的区块数据
 			currentBlockBytes:=bucket.Get(currentHash)
+			fmt.Println("五")
 			//[]byte类型区块数据反序列化
 			currentBlock,err:=Deserialize(currentBlockBytes)
 			if err !=nil {
 				errs=err
+				fmt.Println("pow六")
 				break
 			}
+			fmt.Println("七")
 			blocks=append(blocks,currentBlock)
-			if currentBlock.Height==0 {
+
+			currentHash=currentBlock.PreHash[:]
+
+			if bytes.Compare(currentHash, genesishash[:]) == 0 {
 				break
 			}
-			currentHash=currentBlock.PreHash[:]
+			i++
 		}
-		return nil
+		fmt.Println(i)
+		return errs
 	})
 	return blocks,errs
 }
