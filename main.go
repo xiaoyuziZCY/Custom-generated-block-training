@@ -11,20 +11,21 @@ func main() {
 	fmt.Println("正常")
 	engine, err := bolt.Open(DBFILE, 0600, nil)
 	if err != nil {
-		fmt.Println(0)
 		panic(err.Error())
 	}
 	blockChain := chain.Newblockchain(engine)
 	blockChain.Creatgenesis([]byte("HELLO WORLD"))
-	lastblock := blockChain.GetLastBlock()
-	fmt.Println(lastblock)
-	allBlock, err := blockChain.GetAllblocks()
-	if err !=nil {
-		fmt.Println("pwo...",err.Error())
+	err = blockChain.Addnewblock([]byte("先锋小镇"))
+	if err != nil {
+		fmt.Println("错误信息1：", err.Error())
 		return
 	}
-	fmt.Println(3)
-	for _,block:=range allBlock{
-fmt.Println(block)
+	for blockChain.HasNext() {
+		block:=blockChain.Next()
+		fmt.Printf("区块%d",block.Height)
+		fmt.Printf("区块hash：%v",block.Hash)
+		fmt.Printf("前区块hash：%v",block.PreHash)
+		fmt.Printf("区块数据%s",block.Data)
+		fmt.Println()
 	}
 }

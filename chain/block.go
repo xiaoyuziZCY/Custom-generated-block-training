@@ -4,11 +4,10 @@ import (
 	"Xianfeng/consensus"
 	"bytes"
 	"encoding/gob"
-	"fmt"
 	"time"
 )
 
-const VERSION  = 2
+const VERSION  = 0x00
 type Block struct {
 	Height  int64
 	Version int64
@@ -42,9 +41,7 @@ func (block *Block)Serialize()([]byte,error){
 func Deserialize(data []byte)(Block,error){
 	var block Block
 	decoder := gob.NewDecoder(bytes.NewReader(data))
-	fmt.Println("a")
 	err :=decoder.Decode(&block)
-	fmt.Println("b")
 	return block,err
 }
 //新区块函数
