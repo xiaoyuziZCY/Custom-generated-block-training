@@ -17,10 +17,35 @@ type Blockchain struct {
 	IteratorBlockHash [32]byte//迭代到的区块hash
 }
 func Newblockchain(db *bolt.DB)Blockchain{
-	return Blockchain{Engine:db}
+	//增加为lastblock赋值的逻辑
+	var lastBlock Block
+	db.Update(func(tx *bolt.Tx) error {
+		bucket:=tx.Bucket([]byte(BLOCKS))
+		if bucket==nil {
+			bucket,_=tx.CreateBucket([]byte(BLOCKS))
+		}
+		lastHash:=bucket.Get([]byte(LASTHASH))
+		if len(lastHash)== 0 {
+			return nil
+		}
+		lastBlockBytes:=bucket.Get(lastHash)
+		lastBlock,_ =Deserialize(lastBlockBytes)
+
+		return  nil
+	})
+	return Blockchain{Engine:db,
+		LastBlock:lastBlock,
+		IteratorBlockHash:lastBlock.Hash,
+		}
 }
 //创建一个区块链，携带创世区块
 func (chain *Blockchain)Creatgenesis(genesisdata []byte) {
+	//先看chain.lastblock是否为空
+	hashBig:=new(big.Int)
+	hashBig.SetBytes(chain.LastBlock.Hash[:])
+	if hashBig.Cmp(big.NewInt(0))>0 {
+		return
+	}
 	engine := chain.Engine
 	//读一遍是否有数据
 	engine.Update(func(tx *bolt.Tx) error {
@@ -39,13 +64,6 @@ func (chain *Blockchain)Creatgenesis(genesisdata []byte) {
 				bucket.Put([]byte(LASTHASH), genesis.Hash[:])
 				chain.LastBlock=genesis
 				chain.IteratorBlockHash=genesis.Hash
-			} else {
-				//创世区块不存在了,不需要写入了
-				lasthash := bucket.Get([]byte(LASTHASH))
-				lastBlockbytes := bucket.Get(lasthash)
-				lastBlock, _ := Deserialize(lastBlockbytes)
-				chain.LastBlock = lastBlock
-				chain.IteratorBlockHash=lastBlock.Hash
 			}
 		}
 		return nil
