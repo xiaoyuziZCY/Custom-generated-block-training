@@ -26,77 +26,15 @@ func (client *Client)Run(){
 
 
 	case GENERATEGENESIS:
-		fmt.Println("调用生成创世区块的功能")
-		generateGensis:=flag.NewFlagSet("generategensis",flag.ExitOnError)
-		gensis:=generateGensis.String("gensis","","")
-		generateGensis.Parse(os.Args[2:])
-		//判断是否已经存在创世区块
-		hashBig:=new(big.Int)
-		hashBig.SetBytes(client.Chain.LastBlock.Hash[:])
-		if hashBig.Cmp(big.NewInt(0))==1 {
-			fmt.Println("抱歉，创世区块已经存在，无法写入")
-			return
-		}
-		client.Chain.Creatgenesis([]byte(*gensis))
+		client.GenerateGensis()
 	case ADDNEWBLOCK:
-		fmt.Println("调用生成新区快的功能")
-		addBlock:=flag.NewFlagSet(ADDNEWBLOCK,flag.ExitOnError)
-		data:=addBlock.String("data","","区块存储的自定义内容")
-		addBlock.Parse(os.Args[2:])
-		//args:=os.Args[2:]
-		//准备一个当前命令支持的所有参数的切片
-
-		err:=client.Chain.Addnewblock([]byte(*data))
-		if err!=nil {
-			fmt.Println(err.Error())
-			return
-		}
-		fmt.Println("已经成功创建新区块并存储到内存里")
+		client.AddNewBlock()
 	case GETLASTBLOCK:
-		//getlastBlock:=flag.NewFlagSet(GETLASTBLOCK,flag.ExitOnError)
-		set:=os.Args[2:]
-		if len(set)>0 {
-			fmt.Println("兄弟，你会错意了")
-			return
-		}
-		fmt.Println("获取最新区块的功能")
-
-		last:=client.Chain.GetLastBlock()
-		hashBig:=new(big.Int)
-		hashBig.SetBytes(last.Hash[:])
-		if hashBig.Cmp(big.NewInt(0))>0 {
-			fmt.Println("查询到最新区块")
-			fmt.Println("最新区块高度：",last.Height)
-			fmt.Println("最新区块的内容：",string(last.Data))
-			fmt.Printf("最新区块哈希%x\n",last.Hash)
-			fmt.Printf("上一个区块哈希%x\n",last.PreHash)
-			return
-		}
-		fmt.Println("抱歉，当前暂无最新区块")
-		fmt.Println("请使用go run main.go generategensis生成创世区块")
+		client.GetLastBlock()
 	case GETALLBLOCKS:
-		set:=os.Args[2:]
-		if len(set)>0 {
-			fmt.Println("抱歉,该功能不接收参数")
-			return
-		}
-		fmt.Println("获取所有区块的功能")
-		allBlocks,err:=client.Chain.GetAllblocks()
-		if err!=nil {
-			fmt.Println(err.Error())
-			return
-		}
-		for _,block:=range allBlocks {
-			fmt.Printf("区块%d，hash：%x，数据：%x\n",block.Height,block.Hash,block.Data)
-		}
+		client.GetAllBlocks()
 	case GETBLOCKCOUNT:
-		fmt.Println("获取区块总数")
-		blocks,err:=client.Chain.GetAllblocks()
-		if err!=nil {
-			fmt.Println(err.Error())
-			return
-		}
-		fmt.Printf("查询成功，当前共有%d个区块\n",len(blocks))
+		client.GetBlockCount()
 	case HELP:
 		fmt.Println("获取使用说明")
 	default:
@@ -105,6 +43,85 @@ func (client *Client)Run(){
 
 	}
 }
+func (client *Client)GenerateGensis(){
+	fmt.Println("调用生成创世区块的功能")
+	generateGensis:=flag.NewFlagSet("generategensis",flag.ExitOnError)
+	gensis:=generateGensis.String("gensis","","")
+	generateGensis.Parse(os.Args[2:])
+	//判断是否已经存在创世区块
+	hashBig:=new(big.Int)
+	hashBig.SetBytes(client.Chain.LastBlock.Hash[:])
+	if hashBig.Cmp(big.NewInt(0))==1 {
+		fmt.Println("抱歉，创世区块已经存在，无法写入")
+		return
+	}
+	client.Chain.Creatgenesis([]byte(*gensis))
+}
+func (client *Client)AddNewBlock(){
+	fmt.Println("调用生成新区快的功能")
+	addBlock:=flag.NewFlagSet(ADDNEWBLOCK,flag.ExitOnError)
+	data:=addBlock.String("data","","区块存储的自定义内容")
+	addBlock.Parse(os.Args[2:])
+	//args:=os.Args[2:]
+	//准备一个当前命令支持的所有参数的切片
+
+	err:=client.Chain.Addnewblock([]byte(*data))
+	if err!=nil {
+		fmt.Println(err.Error())
+		return
+	}
+	fmt.Println("已经成功创建新区块并存储到内存里")
+}
+func (client *Client)GetLastBlock(){
+	set:=os.Args[2:]
+	if len(set)>0 {
+		fmt.Println("兄弟，你会错意了")
+		return
+	}
+	fmt.Println("获取最新区块的功能")
+
+	last:=client.Chain.GetLastBlock()
+	hashBig:=new(big.Int)
+	hashBig.SetBytes(last.Hash[:])
+	if hashBig.Cmp(big.NewInt(0))>0 {
+		fmt.Println("查询到最新区块")
+		fmt.Println("最新区块高度：",last.Height)
+		fmt.Println("最新区块的内容：",string(last.Data))
+		fmt.Printf("最新区块哈希%x\n",last.Hash)
+		fmt.Printf("上一个区块哈希%x\n",last.PreHash)
+		return
+	}
+	fmt.Println("抱歉，当前暂无最新区块")
+	fmt.Println("请使用go run main.go generategensis生成创世区块")
+}
+func (client *Client)GetAllBlocks(){
+	set:=os.Args[2:]
+	if len(set)>0 {
+		fmt.Println("抱歉,该功能不接收参数")
+		return
+	}
+	fmt.Println("获取所有区块的功能")
+	allBlocks,err:=client.Chain.GetAllblocks()
+	if err!=nil {
+		fmt.Println(err.Error())
+		return
+	}
+	for _,block:=range allBlocks {
+		fmt.Printf("区块%d，hash：%x，数据：%x\n",block.Height,block.Hash,block.Data)
+	}
+}
+func (client *Client)GetBlockCount(){
+	fmt.Println("获取区块总数")
+	blocks,err:=client.Chain.GetAllblocks()
+	if err!=nil {
+		fmt.Println(err.Error())
+		return
+	}
+	fmt.Printf("查询成功，当前共有%d个区块\n",len(blocks))
+}
+
+
+
 //该方法向控制太输出项目使用说明
 func (client *Client)Help(){
 
