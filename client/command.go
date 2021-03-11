@@ -5,7 +5,7 @@ const(
 	CREATCHAIN="creatchain"
 	ADDNEWBLOCK="addnewblock"
 	GETLASTBLOCK="getlastblock"
-	GETALLBLOCK="getallblock"
+	GETALLBLOCKS="getallblocks"
 	HELP="help"
 	GETBLOCKCOUNT="getblockcount"
 )
