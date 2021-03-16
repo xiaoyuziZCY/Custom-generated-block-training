@@ -2,8 +2,8 @@ package chain
 
 import (
 	"Xianfeng/consensus"
-	"bytes"
-	"encoding/gob"
+	"Xianfeng/transaction"
+	"Xianfeng/utils"
 	"time"
 )
 
@@ -17,9 +17,11 @@ type Block struct {
 	Timestamp int64
 	//Difficulty int64
 	Nonce int64
-	Data []byte//区块体
+	Txs []transaction.Transaction//区块体
 
 }
+
+
 //只有区块才能调用该方法
 //func (block *Block)SetHash(){
 //	heightByte,_ := utils.Int2Byte(block.Height)
@@ -32,30 +34,27 @@ type Block struct {
 //}
 //区块的序列化为[]byte类型
 func (block *Block)Serialize()([]byte,error){
-	buffer :=new(bytes.Buffer)
-	encoder := gob.NewEncoder(buffer)
-	err := encoder.Encode(&block)
-	return buffer.Bytes(),err
+	return utils.GobEncode(block)
 }
 //区块反序列化，传入[]byte，返回block
 func Deserialize(data []byte)(Block,error){
 	var block Block
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err :=decoder.Decode(&block)
+	blockInterface,err:=utils.GobDecode(data,&block)
+	block,_=blockInterface.(Block)
 	return block,err
 }
 //新区块函数
-func CreateBlock(height int64,preHash [32]byte,data []byte)Block  {
+func CreateBlock(height int64,preHash [32]byte,txs []transaction.Transaction)Block{
 	block :=Block{}
 	block.Height = height + 1
 	block.PreHash = preHash
 	block.Version = VERSION
 	block.Timestamp = time.Now().Unix()
-	block.Data = data
+	block.Txs = txs
 	//共识机制切换
 	//block.SetHash()
-	cons := consensus.NewPow(block)
-	hash,nonce :=cons.SearchNonce()
+	proof := consensus.NewPow(block)
+	hash,nonce :=proof.SearchNonce()
 	block.Hash =hash
 	block.Nonce = nonce
 
@@ -63,14 +62,14 @@ func CreateBlock(height int64,preHash [32]byte,data []byte)Block  {
 	return block
 }
 //创世区块函数
-func CreatGenesisBlock(data []byte)Block{
+func CreatGenesisBlock(txs []transaction.Transaction)Block{
 	genesis :=Block{}
 	genesis.Height = 0
 	genesis.PreHash = [32]byte{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 	genesis.Version = VERSION
 	genesis.Timestamp = time.Now().Unix()
 	genesis.Nonce = 0
-	genesis.Data = data
+	genesis.Txs = txs
 	proof :=consensus.NewPow(genesis)
 	hash,nonce :=proof.SearchNonce()
 	genesis.Hash = hash
@@ -90,6 +89,6 @@ func(block Block)Gettimestamp()int64{
 func(block Block)Getprehash()[32]byte{
 	return block.PreHash
 }
-func(block Block)Getdata()[]byte{
-	return block.Data
+func(block Block)Gettxs()[]transaction.Transaction{
+	return block.Txs
 }

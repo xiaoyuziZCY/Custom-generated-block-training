@@ -2,6 +2,8 @@ package client
 
 import (
 	"Xianfeng/chain"
+	"Xianfeng/transaction"
+	"Xianfeng/utils"
 	"flag"
 	"fmt"
 	"math/big"
@@ -27,8 +29,8 @@ func (client *Client)Run(){
 
 	case GENERATEGENESIS:
 		client.GenerateGensis()
-	case ADDNEWBLOCK:
-		client.AddNewBlock()
+	case SENDTRASACtION:
+		client.SendTransaction()
 	case GETLASTBLOCK:
 		client.GetLastBlock()
 	case GETALLBLOCKS:
@@ -46,7 +48,7 @@ func (client *Client)Run(){
 func (client *Client)GenerateGensis(){
 	fmt.Println("调用生成创世区块的功能")
 	generateGensis:=flag.NewFlagSet("generategensis",flag.ExitOnError)
-	gensis:=generateGensis.String("gensis","","")
+	address:=generateGensis.String("address","","")
 	generateGensis.Parse(os.Args[2:])
 	//判断是否已经存在创世区块
 	hashBig:=new(big.Int)
@@ -55,22 +57,54 @@ func (client *Client)GenerateGensis(){
 		fmt.Println("抱歉，创世区块已经存在，无法写入")
 		return
 	}
-	client.Chain.Creatgenesis([]byte(*gensis))
+	coinbase,err:=transaction.NewCoinbaseTx(*address)
+	if err != nil {
+		fmt.Println("抱歉，构建coinbase交易遇到错误")
+		return
+	}
+	client.Chain.Creatgenesis([]transaction.Transaction{*coinbase})
 }
-func (client *Client)AddNewBlock(){
+func (client *Client)SendTransaction(){
 	fmt.Println("调用生成新区快的功能")
-	addBlock:=flag.NewFlagSet(ADDNEWBLOCK,flag.ExitOnError)
-	data:=addBlock.String("data","","区块存储的自定义内容")
+	addBlock:=flag.NewFlagSet(SENDTRASACtION,flag.ExitOnError)
+	from:=addBlock.String("from","","发起者")
+	to :=addBlock.String("to","","接收者")
+	value:=addBlock.String("value","","数值")
 	addBlock.Parse(os.Args[2:])
-	//args:=os.Args[2:]
-	//准备一个当前命令支持的所有参数的切片
-
-	err:=client.Chain.Addnewblock([]byte(*data))
+	fromSlice,err:=utils.JSONString2Slice(*from)
+	toSlice,err:=utils.JSONString2Slice(*to)
+	valueSlice,err:=utils.JSONFloat2Slice(*value)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	lenfrom:=len(fromSlice)
+	lento:=len(toSlice)
+	lenvalue:=len(valueSlice)
+	if !(lenfrom ==lento && lenfrom==lenvalue) {
+		fmt.Println("发起的交易参数不匹配")
+		return
+	}
+	txs:=make([]transaction.Transaction,0)
+	for index :=0;index<lenfrom ;index++  {
+		tx,err:=transaction.NewTransaction(fromSlice[index],toSlice[index],valueSlice[index])
+		if err != nil {
+			fmt.Println("创建交易失败")
+			return
+		}
+		txs=append(txs,*tx)
+	}
+	err=client.Chain.Addnewblock(txs)
+	fmt.Println(fromSlice)
+	fmt.Println(toSlice)
+	fmt.Println(valueSlice)
+	//tx,err:=transaction.NewTransaction(*from,*to,0)
+	err =client.Chain.Addnewblock(txs)
 	if err!=nil {
 		fmt.Println(err.Error())
 		return
 	}
-	fmt.Println("已经成功创建新区块并存储到内存里")
+	fmt.Println("已经成功发送交易")
 }
 func (client *Client)GetLastBlock(){
 	set:=os.Args[2:]
@@ -86,7 +120,7 @@ func (client *Client)GetLastBlock(){
 	if hashBig.Cmp(big.NewInt(0))>0 {
 		fmt.Println("查询到最新区块")
 		fmt.Println("最新区块高度：",last.Height)
-		fmt.Println("最新区块的内容：",string(last.Data))
+		fmt.Println("最新区块的交易：",last.Txs)
 		fmt.Printf("最新区块哈希%x\n",last.Hash)
 		fmt.Printf("上一个区块哈希%x\n",last.PreHash)
 		return
@@ -107,7 +141,7 @@ func (client *Client)GetAllBlocks(){
 		return
 	}
 	for _,block:=range allBlocks {
-		fmt.Printf("区块%d，hash：%x，数据：%x\n",block.Height,block.Hash,block.Data)
+		fmt.Printf("区块%d，hash：%x，数据：%x\n",block.Height,block.Hash,block.Txs)
 	}
 }
 func (client *Client)GetBlockCount(){
@@ -135,7 +169,7 @@ func (client *Client)Help(){
 	fmt.Println()
 	fmt.Println("\t"+CREATCHAIN+"    创建一条区块链")
 	fmt.Println("\t"+GENERATEGENESIS+" 生成创世区块 可接收一个参数-gensis表示创世区块数据")
-	fmt.Println("\t"+ADDNEWBLOCK+"    创建一个新区块 可接收一个参数-data表示区块的数据")
+	fmt.Println("\t"+SENDTRASACtION+"    创建一个新交易 可接收一个参数-data表示交易的数据")
 	fmt.Println("\t"+GETALLBLOCKS+"      ")
 	fmt.Println("\t"+GETLASTBLOCK+"   ")
 	fmt.Println("\t"+GETBLOCKCOUNT+"  ")

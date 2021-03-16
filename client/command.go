@@ -3,7 +3,7 @@ package client
 const(
 	GENERATEGENESIS="generategensis"
 	CREATCHAIN="creatchain"
-	ADDNEWBLOCK="addnewblock"
+	SENDTRASACtION="sendtransaction"
 	GETLASTBLOCK="getlastblock"
 	GETALLBLOCKS="getallblocks"
 	HELP="help"

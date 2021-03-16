@@ -18,19 +18,5 @@ func main() {
 	//fmt.Println(engine)
 	cli:=client.Client{blockChain}
 	cli.Run()
-	//blockChain := chain.Newblockchain(engine)
-	//blockChain.Creatgenesis([]byte("HELLO WORLD"))
-	//err = blockChain.Addnewblock([]byte("先锋小镇"))
-	//if err != nil {
-	//	fmt.Println("错误信息1：", err.Error())
-	//	return
-	//}
-	//for blockChain.HasNext() {
-	//	block:=blockChain.Next()
-	//	fmt.Printf("区块%d",block.Height)
-	//	fmt.Printf("区块hash：%v",block.Hash)
-	//	fmt.Printf("前区块hash：%v",block.PreHash)
-	//	fmt.Printf("区块数据%s",block.Data)
-	//	fmt.Println()
-	//}
+
 }

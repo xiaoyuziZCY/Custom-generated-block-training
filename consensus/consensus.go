@@ -1,6 +1,7 @@
 package consensus
 
 import (
+	"Xianfeng/transaction"
 	"math/big"
 )
 
@@ -13,7 +14,7 @@ type Blockinterface interface {
 	Getversion()int64
 	Gettimestamp()int64
 	Getprehash()[32]byte
-	Getdata()[]byte
+	Gettxs() []transaction.Transaction
 }
 func NewPow(block Blockinterface) Consensus{
 	init := big.NewInt(1)

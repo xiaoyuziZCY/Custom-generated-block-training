@@ -1,7 +1,7 @@
 package chain
 
 import (
-	"bytes"
+	"Xianfeng/transaction"
 	"errors"
 	"github.com/boltdb/bolt"
 	"math/big"
@@ -33,13 +33,14 @@ func Newblockchain(db *bolt.DB)Blockchain{
 
 		return  nil
 	})
-	return Blockchain{Engine:db,
+	return Blockchain{
+		Engine:db,
 		LastBlock:lastBlock,
 		IteratorBlockHash:lastBlock.Hash,
 		}
 }
 //创建一个区块链，携带创世区块
-func (chain *Blockchain)Creatgenesis(genesisdata []byte) {
+func (chain *Blockchain)Creatgenesis(coinbase []transaction.Transaction) {
 	//先看chain.lastblock是否为空
 	hashBig:=new(big.Int)
 	hashBig.SetBytes(chain.LastBlock.Hash[:])
@@ -56,7 +57,7 @@ func (chain *Blockchain)Creatgenesis(genesisdata []byte) {
 		if bucket != nil {
 			lasthash := bucket.Get([]byte(LASTHASH))
 			if len(lasthash) == 0 {
-				genesis := CreatGenesisBlock(genesisdata)
+				genesis := CreatGenesisBlock(coinbase)
 				genserbytes, _ := genesis.Serialize()
 				//存创世区块
 				bucket.Put(genesis.Hash[:], genserbytes)
@@ -70,11 +71,11 @@ func (chain *Blockchain)Creatgenesis(genesisdata []byte) {
 	})
 }
 
-func (chain *Blockchain) Addnewblock(data []byte)error{
+func (chain *Blockchain) Addnewblock(txs []transaction.Transaction)error{
 	//从db找最后区块
 	engine :=chain.Engine
 	lastBlock:=chain.LastBlock
-			newblock:=CreateBlock(lastBlock.Height,lastBlock.Hash,data)
+			newblock:=CreateBlock(lastBlock.Height,lastBlock.Hash,txs)
 			newblockByte,err:=newblock.Serialize()
 			if err !=nil {
 				return err
@@ -102,19 +103,20 @@ func (chain Blockchain)GetLastBlock()(Block){
 func(chain Blockchain)GetAllblocks()([]Block,error){
 	engine:=chain.Engine
 	var errs error
-	genesishash := [32]byte{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+	//genesishash := [32]byte{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 	blocks:=make([]Block,0)
-	errs = engine.View(func(tx *bolt.Tx) error {
+	engine.View(func(tx *bolt.Tx) error {
 		bucket:=tx.Bucket([]byte(BLOCKS))
 		if bucket==nil {
 			errs =errors.New("块数据库操作失败")
 			return errs
 		}
 		////将最后的区块存储到切片里
-		blocks=append(blocks,chain.LastBlock)
+		//blocks=append(blocks,chain.LastBlock)
 		var currentHash []byte
+		currentHash=bucket.Get([]byte(LASTHASH))
 		//直接从倒数第二个区块进行遍历
-		currentHash = chain.LastBlock.PreHash[:]
+		//currentHash = chain.LastBlock.PreHash[:]
 		for {
 			//根据区块hash拿[]byte类型的区块数据
 			currentBlockBytes:=bucket.Get(currentHash)
@@ -126,7 +128,7 @@ func(chain Blockchain)GetAllblocks()([]Block,error){
 			}
 			blocks=append(blocks,currentBlock)
 
-			if bytes.Compare(currentHash, genesishash[:]) == 0 {
+			if currentBlock.Height == 0 {
 				break
 			}
 			currentHash=currentBlock.PreHash[:]

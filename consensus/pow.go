@@ -10,8 +10,8 @@ import (
 
 const DIFFICULTY  =16
 type POW struct {
-		block  Blockinterface
-		target *big.Int
+		Block  Blockinterface
+		Target *big.Int
 }
 
 func (pow POW) SearchNonce()([32]byte,int64){
@@ -20,8 +20,8 @@ func (pow POW) SearchNonce()([32]byte,int64){
 	nonce = 0
 	hashbig:=new(big.Int)
 	for {
-		hash := Parepreblock(pow.block,nonce)
-		target :=pow.target
+		hash := Parepreblock(pow.Block,nonce)
+		target :=pow.Target
 		hashbig= hashbig.SetBytes(hash[:])
 		result :=hashbig.Cmp(target)
 		//result := bytes.Compare(hash[:],target.Bytes())
@@ -37,6 +37,24 @@ func Parepreblock(block Blockinterface,nonce int64)[32]byte{
 	timestampByte,_ :=utils.Int2Byte(block.Gettimestamp())
 	nonceByte, _ := utils.Int2Byte(nonce)
 	prehash:=block.Getprehash()
-	bk := bytes.Join([][]byte{heightByte, versionByte,prehash[:], timestampByte, nonceByte, block.Getdata()}, []byte{})
+	txs := block.Gettxs()
+
+	txsBytes:=make([]byte,0)
+		for _,tx:=range txs{
+			txBytes,err:=utils.GobEncode(tx)
+			if err!=nil {
+				break
+			}
+			//buff.Bytes()
+			txsBytes=append(txsBytes,txBytes...)
+		}
+
+	bk := bytes.Join([][]byte{
+		heightByte,
+		versionByte,
+		prehash[:],
+		timestampByte,
+		nonceByte,
+		txsBytes}, []byte{})
 	return sha256.Sum256(bk)
 }
