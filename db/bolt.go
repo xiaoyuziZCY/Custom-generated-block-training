@@ -16,6 +16,7 @@ func (engine DBEngine)SaveBlock2DB(block chain.Block){
 }
 
 //从文件里恢复区块
-func (engine DBEngine)GetBlockFromDB(hahs [32]byte)chain.Block{
+func (engine DBEngine)GetBlockFromDB(hahs [32]byte)*chain.Block{
 	fmt.Println("从db中获取特定区块")
+	return nil
 }

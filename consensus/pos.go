@@ -5,7 +5,7 @@ import (
 )
 
 type POS struct {
-block Blockinterface
+Block BlockInterface
 }
 func (pos POS) SearchNonce()([32]byte,int64){
 	fmt.Println("已为pos算法机制")

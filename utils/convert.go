@@ -2,9 +2,11 @@ package utils
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/binary"
 	"encoding/gob"
 	"encoding/json"
+	"golang.org/x/crypto/ripemd160"
 )
 
 //将int数值类型转换为byte
@@ -38,4 +40,14 @@ func JSONFloat2Slice(data string)([]float64,error)  {
 	var slice []float64
 	err :=json.Unmarshal([]byte(data),&slice)
 	return slice,err
+}
+func Hash256(data []byte)([]byte){
+	sha256Hash := sha256.New()
+	sha256Hash.Write(data)
+	return sha256Hash.Sum(nil)
+}
+func RipEMd160(data []byte)([]byte){
+	ripemdHash:=ripemd160.New()
+	ripemdHash.Write(data)
+	return ripemdHash.Sum(nil)
 }

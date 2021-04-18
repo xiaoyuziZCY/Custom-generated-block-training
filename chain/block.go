@@ -4,6 +4,8 @@ import (
 	"Xianfeng/consensus"
 	"Xianfeng/transaction"
 	"Xianfeng/utils"
+	"bytes"
+	"encoding/gob"
 	"time"
 )
 
@@ -12,15 +14,13 @@ type Block struct {
 	Height  int64
 	Version int64
 	PreHash [32]byte
-	Hash    [32]byte//区块hash
+	Hash    [32]byte //区块hash
 	//默克尔根
 	Timestamp int64
 	//Difficulty int64
 	Nonce int64
-	Txs []transaction.Transaction//区块体
-
+	Txs   []transaction.Transaction //区块体
 }
-
 
 //只有区块才能调用该方法
 //func (block *Block)SetHash(){
@@ -39,8 +39,8 @@ func (block *Block)Serialize()([]byte,error){
 //区块反序列化，传入[]byte，返回block
 func Deserialize(data []byte)(Block,error){
 	var block Block
-	blockInterface,err:=utils.GobDecode(data,&block)
-	block,_=blockInterface.(Block)
+	decoder:=gob.NewDecoder(bytes.NewReader(data))
+	err:=decoder.Decode(&block)
 	return block,err
 }
 //新区块函数
@@ -53,7 +53,7 @@ func CreateBlock(height int64,preHash [32]byte,txs []transaction.Transaction)Blo
 	block.Txs = txs
 	//共识机制切换
 	//block.SetHash()
-	proof := consensus.NewPow(block)
+	proof := consensus.NewProofWork(block)
 	hash,nonce :=proof.SearchNonce()
 	block.Hash =hash
 	block.Nonce = nonce
@@ -68,27 +68,26 @@ func CreatGenesisBlock(txs []transaction.Transaction)Block{
 	genesis.PreHash = [32]byte{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 	genesis.Version = VERSION
 	genesis.Timestamp = time.Now().Unix()
-	genesis.Nonce = 0
 	genesis.Txs = txs
-	proof :=consensus.NewPow(genesis)
+	proof :=consensus.NewProofWork(genesis)
 	hash,nonce :=proof.SearchNonce()
 	genesis.Hash = hash
 	genesis.Nonce=nonce
 	return genesis
 }
 //下面的方法是实现blockinterface的方法主要目的是解决循环导包问题
-func(block Block)Getheight()int64{
+func(block Block)GetHeight()int64{
 	return block.Height
 }
-func(block Block)Getversion()int64{
+func(block Block)GetVersion()int64{
 	return block.Version
 }
-func(block Block)Gettimestamp()int64{
+func(block Block)GetTimeStamp()int64{
 	return block.Timestamp
 }
-func(block Block)Getprehash()[32]byte{
+func(block Block)GetPreHash()[32]byte{
 	return block.PreHash
 }
-func(block Block)Gettxs()[]transaction.Transaction{
+func(block Block)GetTxs()[]transaction.Transaction{
 	return block.Txs
 }

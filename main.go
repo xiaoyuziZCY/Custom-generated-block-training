@@ -14,7 +14,12 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	blockChain:=chain.Newblockchain(engine)
+	fmt.Println("233")
+	blockChain,err:=chain.NewBlockChain(engine)
+	if err != nil {
+		panic(err.Error())
+		return
+	}
 	//fmt.Println(engine)
 	cli:=client.Client{blockChain}
 	cli.Run()

@@ -1,25 +1,32 @@
 package consensus
 
 import (
-	"Xianfeng/transaction"
 	"math/big"
+	"Xianfeng/transaction"
 )
 
+/**
+ * 共识机制的接口标准,用于定义共识方案的接口
+ */
 type Consensus interface {
-	SearchNonce() ([32]byte,int64)
+	SearchNonce() ([32]byte, int64)
 }
-//区块的数据标准
-type Blockinterface interface {
-	Getheight()int64
-	Getversion()int64
-	Gettimestamp()int64
-	Getprehash()[32]byte
-	Gettxs() []transaction.Transaction
+
+/**
+ * 区块的数据接口标准
+ */
+type BlockInterface interface {
+	GetHeight() int64
+	GetVersion() int64
+	GetTimeStamp() int64
+	GetPreHash() [32]byte
+	GetTxs() []transaction.Transaction
 }
-func NewPow(block Blockinterface) Consensus{
+
+func NewProofWork(block BlockInterface) Consensus {
 	init := big.NewInt(1)
-	init.Lsh(init,255-DIFFICULTY)
-	return POW{block,init}
+	init.Lsh(init, 255-DIFFICULTY)
+	return ProofWork{block,init}
 }
 func NewPos() Consensus{
 	proof:= POS{}
